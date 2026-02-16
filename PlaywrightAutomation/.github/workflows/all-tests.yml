@@ -1,0 +1,77 @@
+name: Automated Tests - All Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ '21' ]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Install Playwright browsers
+        run: mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install"
+
+      - name: Run All Tests
+        run: mvn clean test -P all-tests
+        continue-on-error: true
+        env:
+          BASE_URL: https://www.saucedemo.com/
+          BROWSER_TYPE: chromium
+          HEADLESS: true
+
+      - name: Generate Allure Report
+        if: always()
+        run: mvn allure:report
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results-${{ matrix.java-version }}
+          path: |
+            target/allure-results
+            target/cucumber-reports
+            target/logs
+
+      - name: Publish Allure Results
+        if: always()
+        uses: simple-elf/allure-report-action@master
+        with:
+          allure_results: target/allure-results
+          allure_history: allure-history
+          keep_reports: 20
+
+      - name: Comment PR with Test Results
+        if: github.event_name == 'pull_request' && always()
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const testSummary = `## Test Results
+            - Java Version: ${{ matrix.java-version }}
+            - Status: ${{ job.status }}
+            - Reports: Check Allure Report in Actions artifacts`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: testSummary
+            })
