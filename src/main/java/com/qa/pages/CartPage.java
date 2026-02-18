@@ -15,7 +15,6 @@ public class CartPage extends BasePage {
     private static final String ITEM_PRICE              = ".inventory_item_price";
     private static final String CHECKOUT_BUTTON         = "[data-test='checkout']";
     private static final String CONTINUE_SHOPPING_BUTTON = "[data-test='continue-shopping']";
-    private static final String CART_QUANTITY           = ".cart_quantity";
 
     // -------------------------------------------------------------------------
     // Queries
