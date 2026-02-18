@@ -31,7 +31,7 @@ public class Hooks {
     @Before(order = 0)
     public void setUp() {
         logger.info("===== Setting up test environment (thread: {}) =====",
-                Thread.currentThread().getId());
+                Thread.currentThread().threadId());
         Allure.step("Initializing browser");
         BrowserContextManager.initBrowser();
         BrowserContextManager.createContext();
@@ -45,7 +45,7 @@ public class Hooks {
     @After(order = 0)
     public void tearDown(Scenario scenario) {
         logger.info("===== Tearing down test environment (thread: {}) =====",
-                Thread.currentThread().getId());
+                Thread.currentThread().threadId());
         try {
             if (scenario.isFailed()) {
                 logger.error("Scenario FAILED: {}", scenario.getName());

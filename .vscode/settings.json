@@ -3,7 +3,7 @@
     "maven.terminal.customEnv": [
         { "environmentVariable": "TEST_ENV", "value": "dev" },
         { "environmentVariable": "BROWSER_TYPE", "value": "chromium" },
-        { "environmentVariable": "HEADLESS", "value": "false" },
+        { "environmentVariable": "HEADLESS", "value": "true" },
         { "environmentVariable": "BASE_URL", "value": "https://www.saucedemo.com/" },
         { "environmentVariable": "API_BASE_URL", "value": "https://jsonplaceholder.typicode.com" },
         { "environmentVariable": "TEST_STANDARD_USER", "value": "standard_user" },

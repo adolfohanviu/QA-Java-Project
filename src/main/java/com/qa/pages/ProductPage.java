@@ -1,6 +1,5 @@
 package com.qa.pages;
 
-import com.microsoft.playwright.PlaywrightException;
 import com.qa.utils.TestConstants;
 
 import io.qameta.allure.Step;
@@ -14,7 +13,6 @@ public class ProductPage extends BasePage {
     private static final String PRODUCT_TITLE      = TestConstants.Selectors.PRODUCT_TITLE;
     private static final String PRODUCT_PRICE      = TestConstants.Selectors.PRODUCT_PRICE;
     private static final String ADD_TO_CART_BUTTON = TestConstants.Selectors.ADD_TO_CART_BUTTON;
-    private static final String REMOVE_BUTTON      = "button[data-test*='remove']";
     private static final String CART_BADGE         = TestConstants.Selectors.CART_BADGE;
     private static final String SORT_DROPDOWN      = TestConstants.Selectors.SORT_DROPDOWN;
 

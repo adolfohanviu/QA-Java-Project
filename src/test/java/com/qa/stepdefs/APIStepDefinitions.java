@@ -191,7 +191,6 @@ public class APIStepDefinitions {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private Map<String, Object> loadFixture(String fixtureName) {
         String resourcePath = "/data/" + fixtureName + ".json";
         try (InputStream is = getClass().getResourceAsStream(resourcePath)) {
