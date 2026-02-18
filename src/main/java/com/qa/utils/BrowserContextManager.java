@@ -50,7 +50,7 @@ public class BrowserContextManager {
             browserHolder.set(browser);
 
             logger.info("Browser launched: {} (headless: {}, thread: {})",
-                    browserType, ConfigManager.isHeadless(), Thread.currentThread().getId());
+                    browserType, ConfigManager.isHeadless(), Thread.currentThread().threadId());
         } catch (Exception e) {
             logger.error("Failed to initialize browser", e);
             throw new RuntimeException("Browser initialization failed", e);
@@ -67,7 +67,7 @@ public class BrowserContextManager {
         }
         BrowserContext context = browserHolder.get().newContext();
         contextHolder.set(context);
-        logger.info("Browser context created (thread: {})", Thread.currentThread().getId());
+        logger.info("Browser context created (thread: {})", Thread.currentThread().threadId());
     }
 
     /**
@@ -80,7 +80,7 @@ public class BrowserContextManager {
         }
         Page page = contextHolder.get().newPage();
         pageHolder.set(page);
-        logger.info("New page created (thread: {})", Thread.currentThread().getId());
+        logger.info("New page created (thread: {})", Thread.currentThread().threadId());
     }
 
     /**
@@ -114,7 +114,7 @@ public class BrowserContextManager {
         if (page != null) {
             page.close();
             pageHolder.remove();
-            logger.info("Page closed (thread: {})", Thread.currentThread().getId());
+            logger.info("Page closed (thread: {})", Thread.currentThread().threadId());
         }
     }
 
@@ -126,7 +126,7 @@ public class BrowserContextManager {
         if (context != null) {
             context.close();
             contextHolder.remove();
-            logger.info("Context closed (thread: {})", Thread.currentThread().getId());
+            logger.info("Context closed (thread: {})", Thread.currentThread().threadId());
         }
     }
 
@@ -151,7 +151,7 @@ public class BrowserContextManager {
         }
 
         logger.info("Browser fully closed and ThreadLocals cleaned (thread: {})",
-                Thread.currentThread().getId());
+                Thread.currentThread().threadId());
     }
 
     /**
@@ -163,6 +163,6 @@ public class BrowserContextManager {
         closeContext();
         createContext();
         createPage();
-        logger.info("Browser reset (thread: {})", Thread.currentThread().getId());
+        logger.info("Browser reset (thread: {})", Thread.currentThread().threadId());
     }
 }
