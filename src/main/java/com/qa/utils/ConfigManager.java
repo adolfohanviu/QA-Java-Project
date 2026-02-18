@@ -8,10 +8,14 @@ import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 
 /**
- * ConfigManager loads and manages configuration properties
- * Supports multiple environment configurations with proper null handling
+ * ConfigManager loads and provides typed access to configuration properties.
+ *
+ * Supports multiple environments via the TEST_ENV environment variable.
+ * Falls back to application.conf when an environment-specific file is absent.
+ *
  */
 public class ConfigManager {
+
     private static final Logger logger = LogManager.getLogger(ConfigManager.class);
     private static Config config;
 
@@ -19,18 +23,27 @@ public class ConfigManager {
         loadConfig();
     }
 
-    /**
-     * Load configuration based on environment
-     */
+    private ConfigManager() {
+        // Utility class — do not instantiate
+    }
+
+    // -------------------------------------------------------------------------
+    // Config loading
+    // -------------------------------------------------------------------------
+
     private static void loadConfig() {
         try {
-            String env = System.getenv("TEST_ENV") != null ? System.getenv("TEST_ENV") : "dev";
+            String env = System.getenv("TEST_ENV");
+            if (env == null || env.isBlank()) {
+                env = "dev";
+            }
+            // Layer: environment-specific file → default application.conf
             config = ConfigFactory.parseResources("application-" + env + ".conf")
                     .withFallback(ConfigFactory.load("application.conf"))
                     .resolve();
-            logger.info(String.format("Configuration loaded for environment: %s", env));
+            logger.info("Configuration loaded for environment: {}", env);
         } catch (ConfigException.IO e) {
-            logger.warn("Environment config not found, loading default configuration", e);
+            logger.warn("Environment-specific config not found; loading default application.conf", e);
             config = ConfigFactory.load("application.conf");
         } catch (ConfigException e) {
             logger.error("Failed to parse configuration", e);
@@ -38,219 +51,151 @@ public class ConfigManager {
         }
     }
 
-    /**
-     * Get base URL for testing
-     * @return Base URL
-     * @throws RuntimeException if base.url is not configured
-     */
+    // -------------------------------------------------------------------------
+    // Public accessors
+    // -------------------------------------------------------------------------
+
+    /** @return Base URL for the application under test */
     public static String getBaseURL() {
-        return getStringConfig("base.url", "Base URL not configured");
+        return getStringConfig("base.url", "https://www.saucedemo.com/");
     }
 
-    /**
-     * Get browser type to use for tests
-     * @return Browser type (chromium, firefox, webkit)
-     */
+    /** @return Browser type: chromium | firefox | webkit */
     public static String getBrowserType() {
         return getStringConfig("browser.type", "chromium");
     }
 
     /**
-     * Check if browser should run in headless mode
-     * @return true if headless, false otherwise
+     * Headless mode: checks system property → environment variable → config file.
+     *
+     * @return true if headless, false for headed mode
      */
     public static boolean isHeadless() {
-        String headlessOverride = System.getProperty("browser.headless");
-        if (headlessOverride == null || headlessOverride.isBlank()) {
-            headlessOverride = System.getProperty("HEADLESS");
+        // System property takes highest precedence (e.g., -Dbrowser.headless=false)
+        for (String key : new String[]{"browser.headless", "HEADLESS"}) {
+            String val = System.getProperty(key);
+            if (val != null && !val.isBlank()) {
+                return Boolean.parseBoolean(val.trim());
+            }
         }
-        if (headlessOverride == null || headlessOverride.isBlank()) {
-            headlessOverride = System.getenv("HEADLESS");
+        // Then environment variable
+        String envVal = System.getenv("HEADLESS");
+        if (envVal != null && !envVal.isBlank()) {
+            return Boolean.parseBoolean(envVal.trim());
         }
-
-        if (headlessOverride != null && !headlessOverride.isBlank()) {
-            return Boolean.parseBoolean(headlessOverride.trim());
-        }
-
-        try {
-            return config.getBoolean("browser.headless");
-        } catch (ConfigException.WrongType e) {
-            String configValue = config.getString("browser.headless");
-            logger.warn(String.format("browser.headless is configured as string, converting: %s", configValue));
-            return Boolean.parseBoolean(configValue);
-        } catch (ConfigException e) {
-            logger.warn("browser.headless not configured, defaulting to true");
-            return true;
-        }
+        return getBooleanConfig("browser.headless", true);
     }
 
-    /**
-     * Get default timeout in milliseconds
-     * @return Timeout value
-     */
+    /** @return Default element/page timeout in milliseconds */
     public static int getTimeout() {
         return getIntConfig("timeout.default", 30000);
     }
 
-    /**
-     * Get wait timeout in milliseconds
-     * @return Wait timeout value
-     */
+    /** @return Wait timeout for explicit waits in milliseconds */
     public static int getWaitTimeout() {
         return getIntConfig("timeout.wait", 10000);
     }
 
-    /**
-     * Get API base URL
-     * @return API base URL
-     */
+    /** @return Base URL for the API under test */
     public static String getAPIBaseURL() {
-        return getStringConfig("api.base.url", "API base URL not configured");
+        return getStringConfig("api.base.url", "https://jsonplaceholder.typicode.com");
     }
 
-    /**
-     * Get log level
-     * @return Log level (DEBUG, INFO, WARN, ERROR)
-     */
+    /** @return API request timeout in milliseconds */
+    public static int getAPITimeout() {
+        return getIntConfig("api.timeout", 10000);
+    }
+
+    /** @return Log level string (DEBUG | INFO | WARN | ERROR) */
     public static String getLogLevel() {
         return getStringConfig("log.level", "INFO");
     }
 
-    /**
-     * Check if Allure reporting is enabled
-     * @return true if enabled, false otherwise
-     */
+    /** @return true if Allure reporting is enabled */
     public static boolean isAllureEnabled() {
         return getBooleanConfig("allure.enabled", true);
     }
 
     /**
-     * Get custom string configuration value
+     * Get a custom string property.
+     *
      * @param key Configuration key
-     * @return Configuration value or empty string if not found
+     * @return Value or empty string
      */
     public static String getProperty(String key) {
         return getStringConfig(key, "");
     }
 
     /**
-     * Get custom string configuration value with default
-     * @param key Configuration key
-     * @param defaultValue Default value if not found
-     * @return Configuration value or default
+     * Get a custom string property with a caller-supplied default.
+     *
+     * @param key          Configuration key
+     * @param defaultValue Fallback value
+     * @return Value or defaultValue
      */
     public static String getProperty(String key, String defaultValue) {
         return getStringConfig(key, defaultValue);
     }
 
     /**
-     * Get integer configuration value
+     * Get a custom integer property.
+     *
      * @param key Configuration key
-     * @return Configuration value or 0 if not found
+     * @return Value or 0
      */
     public static int getIntProperty(String key) {
         return getIntConfig(key, 0);
     }
 
     /**
-     * Get integer configuration value with default
+     * Get a custom boolean property.
+     *
      * @param key Configuration key
-     * @param defaultValue Default value if not found
-     * @return Configuration value or default
-     */
-    public static int getIntProperty(String key, int defaultValue) {
-        return getIntConfig(key, defaultValue);
-    }
-
-    /**
-     * Get boolean configuration value
-     * @param key Configuration key
-     * @return Configuration value or false if not found
+     * @return Value or false
      */
     public static boolean getBooleanProperty(String key) {
         return getBooleanConfig(key, false);
     }
 
-    /**
-     * Get boolean configuration value with default
-     * @param key Configuration key
-     * @param defaultValue Default value if not found
-     * @return Configuration value or default
-     */
-    public static boolean getBooleanProperty(String key, boolean defaultValue) {
-        return getBooleanConfig(key, defaultValue);
-    }
+    // -------------------------------------------------------------------------
+    // Private helpers with safe defaults
+    // -------------------------------------------------------------------------
 
-    // Helper methods
-
-    /**
-     * Safely get string configuration with default value
-     * @param key Configuration key
-     * @param defaultValue Default value if not found
-     * @return Configuration value or default
-     */
     private static String getStringConfig(String key, String defaultValue) {
         try {
-            String value = config.getString(key);
-            if (value == null || value.isBlank()) {
-                logger.debug(String.format("Configuration key '%s' is empty, using default", key));
-                return defaultValue;
-            }
-            return value;
+            return config.getString(key);
         } catch (ConfigException.Missing e) {
-            logger.warn(String.format("Configuration key not found: %s", key));
+            logger.debug("Config key '{}' not found; using default: '{}'", key, defaultValue);
             return defaultValue;
         } catch (ConfigException e) {
-            logger.error(String.format("Error reading configuration key: %s", key), e);
+            logger.warn("Error reading config key '{}'; using default: '{}'", key, defaultValue);
             return defaultValue;
         }
     }
 
-    /**
-     * Safely get integer configuration with default value
-     * @param key Configuration key
-     * @param defaultValue Default value if not found
-     * @return Configuration value or default
-     */
     private static int getIntConfig(String key, int defaultValue) {
         try {
             return config.getInt(key);
         } catch (ConfigException.Missing e) {
-            logger.debug(String.format("Integer configuration key not found: %s, using default: %d", key, defaultValue));
-            return defaultValue;
-        } catch (ConfigException.WrongType e) {
-            logger.warn(String.format("Configuration key '%s' is not an integer, using default: %d", key, defaultValue));
+            logger.debug("Config key '{}' not found; using default: {}", key, defaultValue);
             return defaultValue;
         } catch (ConfigException e) {
-            logger.error(String.format("Error reading integer configuration key: %s", key), e);
+            logger.warn("Error reading int config key '{}'; using default: {}", key, defaultValue);
             return defaultValue;
         }
     }
 
-    /**
-     * Safely get boolean configuration with default value
-     * @param key Configuration key
-     * @param defaultValue Default value if not found
-     * @return Configuration value or default
-     */
     private static boolean getBooleanConfig(String key, boolean defaultValue) {
         try {
             return config.getBoolean(key);
-        } catch (ConfigException.WrongType e) {
-            try {
-                String value = config.getString(key);
-                logger.debug(String.format("Boolean property '%s' is configured as string, converting: %s", key, value));
-                return Boolean.parseBoolean(value);
-            } catch (ConfigException ex) {
-                logger.warn(String.format("Could not convert boolean property: %s, using default: %b", key, defaultValue));
-                return defaultValue;
-            }
         } catch (ConfigException.Missing e) {
-            logger.debug(String.format("Boolean configuration key not found: %s, using default: %b", key, defaultValue));
+            logger.debug("Config key '{}' not found; using default: {}", key, defaultValue);
             return defaultValue;
         } catch (ConfigException e) {
-            logger.error(String.format("Error reading boolean configuration key: %s", key), e);
-            return defaultValue;
+            // Gracefully handle config value stored as a string (e.g. "true" instead of true)
+            String raw = getStringConfig(key, String.valueOf(defaultValue));
+            logger.warn("Config key '{}' error; converting '{}' to boolean", key, raw);
+            return Boolean.parseBoolean(raw);
         }
     }
 }

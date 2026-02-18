@@ -1,113 +1,137 @@
 package com.qa.pages;
 
 import com.microsoft.playwright.PlaywrightException;
+import com.qa.utils.TestConstants;
 
 import io.qameta.allure.Step;
 
 /**
- * ProductPage - Page Object for product listing and details
+ * ProductPage — Page Object for the SauceDemo product inventory screen.
  */
 public class ProductPage extends BasePage {
-    // Locators
-    private static final String PRODUCT_TITLE = ".inventory_item_name";
-    private static final String PRODUCT_PRICE = ".inventory_item_price";
-    private static final String ADD_TO_CART_BUTTON = "button[data-test*='add-to-cart']";
-    private static final String REMOVE_BUTTON = "button[data-test*='remove']";
-    private static final String CART_BADGE = ".shopping_cart_badge";
-    private static final String SORT_DROPDOWN = "[data-test='product_sort_container']";
+
+    // Selectors
+    private static final String PRODUCT_TITLE      = TestConstants.Selectors.PRODUCT_TITLE;
+    private static final String PRODUCT_PRICE      = TestConstants.Selectors.PRODUCT_PRICE;
+    private static final String ADD_TO_CART_BUTTON = TestConstants.Selectors.ADD_TO_CART_BUTTON;
+    private static final String REMOVE_BUTTON      = "button[data-test*='remove']";
+    private static final String CART_BADGE         = TestConstants.Selectors.CART_BADGE;
+    private static final String SORT_DROPDOWN      = TestConstants.Selectors.SORT_DROPDOWN;
+
+    // -------------------------------------------------------------------------
+    // Product queries
+    // -------------------------------------------------------------------------
 
     /**
-     * Get product title by index
-     * @param index 1-based product index
+     * Get the title of a product by its zero-based display index.
+     * 
+     * @param index Zero-based product index
      * @return Product title text
      */
     @Step("Get product title at index {index}")
     public String getProductTitle(int index) {
-        String locator = String.format("%s:nth-child(%d)", PRODUCT_TITLE, index);
-        return getText(locator);
+        return getTextByIndex(PRODUCT_TITLE, index);
     }
 
     /**
-     * Get product price by index
-     * @param index 1-based product index
-     * @return Product price as string
+     * Get the price text of a product by its zero-based display index.
+     * 
+     * @param index Zero-based product index
+     * @return Raw price string (e.g. "$9.99")
      */
     @Step("Get product price at index {index}")
     public String getProductPrice(int index) {
-        String locator = String.format("%s:nth-child(%d)", PRODUCT_PRICE, index);
-        return getText(locator);
+        return getTextByIndex(PRODUCT_PRICE, index);
     }
 
     /**
-     * Add product to cart by index with fallback mechanism
-     * @param index 1-based product index
-     * @throws PlaywrightException if unable to add product after all attempts
+     * Parse a price string to a double (strips the leading "$").
+     *
+     * @param priceText e.g. "$9.99"
+     * @return Numeric price value
      */
-    @Step("Add product at index {index} to cart")
-    public void addProductToCart(int index) {
+    public double parsePrice(String priceText) {
         try {
-            page.locator("button[data-test*='add-to-cart']").nth(index - 1).click();
-            logger.info(String.format("Product at index %d added to cart", index));
-        } catch (PlaywrightException e) {
-            logger.warn(String.format("Failed with dynamic selector for index %d, retrying with alternative strategy", index), e);
-            
-            // Fallback: wait and retry with scroll
-            try {
-                page.locator("button[data-test*='add-to-cart']").nth(index - 1).scrollIntoViewIfNeeded();
-                page.locator("button[data-test*='add-to-cart']").nth(index - 1).click();
-                logger.info(String.format("Product at index %d added to cart (after scroll)", index));
-            } catch (PlaywrightException retryError) {
-                logger.error(String.format("Failed to add product at index %d to cart after retry", index), retryError);
-                throw retryError;
-            }
-        }
-    }
-
-    /**
-     * Get number of items currently in cart
-     * @return Count of items in cart, 0 if cart is empty
-     */
-    @Step("Get current cart count")
-    public int getCartCount() {
-        try {
-            if (isElementVisible(CART_BADGE)) {
-                String count = getText(CART_BADGE);
-                if (count == null || count.isBlank()) {
-                    logger.warn("Cart badge text is empty, returning 0");
-                    return 0;
-                }
-                int cartCount = Integer.parseInt(count.trim());
-                logger.info(String.format("Current cart count: %d", cartCount));
-                return cartCount;
-            }
-            logger.debug("Cart badge not visible, cart is empty");
-            return 0;
+            return Double.parseDouble(priceText.replace("$", "").trim());
         } catch (NumberFormatException e) {
-            logger.error("Cart badge contains non-numeric value", e);
-            return 0;
-        } catch (PlaywrightException e) {
-            logger.debug("Unable to get cart count", e);
-            return 0;
+            logger.error("Cannot parse price: {}", priceText, e);
+            throw new RuntimeException("Invalid price format: " + priceText, e);
         }
     }
 
     /**
-     * Sort products by specified option
-     * @param sortOption Sort option value (e.g., "Name (A to Z)", "Price (low to high)")
+     * Get the total number of products currently listed on the page.
+     *
+     * @return Product count
+     */
+    @Step("Count products on page")
+    public int getProductCount() {
+        return countElements(PRODUCT_TITLE);
+    }
+
+    // -------------------------------------------------------------------------
+    // Cart interactions
+    // -------------------------------------------------------------------------
+
+    /**
+     * Add a product to the cart by its one-based display index.
+     * 
+     * @param oneBasedIndex 1-based product index (1 = first product)
+     */
+    @Step("Add product at index {oneBasedIndex} to cart")
+    public void addProductToCart(int oneBasedIndex) {
+        int zeroIndex = oneBasedIndex - 1;
+        page.locator(ADD_TO_CART_BUTTON).nth(zeroIndex).click();
+        logger.info("Added product at index {} to cart", oneBasedIndex);
+    }
+
+    /**
+     * Get the current cart item count from the badge.
+     *
+     * @return Cart count, or 0 when cart is empty (badge not present)
+     */
+    @Step("Get cart item count from badge")
+    public int getCartCount() {
+        if (!isElementVisible(CART_BADGE)) {
+            return 0;
+        }
+        try {
+            return Integer.parseInt(getText(CART_BADGE).trim());
+        } catch (NumberFormatException e) {
+            logger.debug("Cart badge text is not a number; returning 0", e);
+            return 0;
+        }
+    }
+
+    // -------------------------------------------------------------------------
+    // Sorting
+    // -------------------------------------------------------------------------
+
+    /**
+     * Sort products using the dropdown.
+     *
+     * @param sortOption Display label (use {@link com.qa.utils.TestConstants.SortOptions})
      */
     @Step("Sort products by: {sortOption}")
     public void sortProducts(String sortOption) {
         selectDropdownOption(SORT_DROPDOWN, sortOption);
+        logger.info("Products sorted by: {}", sortOption);
     }
 
+    // -------------------------------------------------------------------------
+    // Remove from cart
+    // -------------------------------------------------------------------------
+
     /**
-     * Remove product from cart by product name
-     * @param productName Name of the product to remove
+     * Remove a specific product from the cart via its remove button.
+     *
+     * @param productDataTestName The data-test attribute suffix for the product
+     *                            (e.g. "sauce-labs-backpack")
      */
-    @Step("Remove product from cart: {productName}")
-    public void removeProductFromCart(String productName) {
-        String locator = String.format("button[data-test='remove-%s']",
-                productName.toLowerCase().replace(" ", "-"));
+    @Step("Remove product '{productDataTestName}' from cart")
+    public void removeProductFromCart(String productDataTestName) {
+        String locator = "button[data-test='remove-" + productDataTestName + "']";
         click(locator);
+        logger.info("Removed product '{}' from cart", productDataTestName);
     }
 }

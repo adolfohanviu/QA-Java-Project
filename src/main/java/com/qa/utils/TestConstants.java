@@ -1,144 +1,140 @@
 package com.qa.utils;
 
 /**
- * TestConstants - Centralized test constants and configuration values
- * Avoid hardcoding values in tests and page objects
- * Update these values to match your test environment
+ * TestConstants — Centralized test constants and configuration values.
+ *
+ * All other test-wide constants (timeouts, selectors, assertion messages,
+ * URL paths, sort options) remain centralized here to avoid scattered
+ * magic strings across the codebase.
  */
-public class TestConstants {
-    
-    // ============ TIMEOUT CONSTANTS ============
-    /** Page load timeout in milliseconds (30 seconds) */
-    public static final int PAGE_LOAD_TIMEOUT_MS = 30000;
-    
-    /** Element wait timeout in milliseconds (10 seconds) */
-    public static final int ELEMENT_WAIT_TIMEOUT_MS = 10000;
-    
-    // ============ RETRY CONSTANTS ============
-    /** Maximum number of retry attempts for flaky element interactions */
+public final class TestConstants {
+
+    private TestConstants() {
+        // Utility class — do not instantiate
+    }
+
+    // =========================================================================
+    // TIMEOUT CONSTANTS
+    // =========================================================================
+
+    /** Page/navigation load timeout in milliseconds (30 s). */
+    public static final int PAGE_LOAD_TIMEOUT_MS = 30_000;
+
+    /** Default element wait timeout in milliseconds (10 s). */
+    public static final int ELEMENT_WAIT_TIMEOUT_MS = 10_000;
+
+    /** Maximum retry attempts for flaky element interactions. */
     public static final int MAX_RETRY_ATTEMPTS = 3;
-    
-    /** Delay between retry attempts in milliseconds (500ms) */
+
+    /** Delay between retry attempts in milliseconds. */
     public static final int RETRY_DELAY_MS = 500;
-    
-    // ============ TEST USER CREDENTIALS ============
-    /** Test users for various scenarios */
+
+    // =========================================================================
+    // TEST USER CREDENTIALS
+    //
+    //   TEST_STANDARD_USER      (default: standard_user)
+    //   TEST_STANDARD_PASSWORD  (default: secret_sauce — only for demo site)
+    //   TEST_LOCKED_USER        (default: locked_out_user)
+    //   TEST_PROBLEM_USER       (default: problem_user)
+    //   TEST_INVALID_USER       (default: invalid_user)
+    //   TEST_INVALID_PASSWORD   (default: wrong_password)
+    // =========================================================================
+
     public static final class TestUsers {
-        /** Standard user with all permissions */
-        public static final String STANDARD_USER = "standard_user";
-        
-        /** Standard user password */
-        public static final String STANDARD_PASSWORD = "secret_sauce";
-        
-        /** Locked user that cannot log in */
-        public static final String LOCKED_USER = "locked_out_user";
-        
-        /** User that experiences UI glitches (problem_user) */
-        public static final String PROBLEM_USER = "problem_user";
-        
-        /** Invalid user for negative testing */
-        public static final String INVALID_USER = "invalid_user";
-        
-        /** Invalid password for negative testing */
-        public static final String INVALID_PASSWORD = "wrong_password";
+
+        private TestUsers() {}
+
+        public static final String STANDARD_USER =
+                getEnvOrDefault("TEST_STANDARD_USER", "standard_user");
+
+        /** WARNING: only use the default for public demo sites. */
+        public static final String STANDARD_PASSWORD =
+                getEnvOrDefault("TEST_STANDARD_PASSWORD", "secret_sauce");
+
+        public static final String LOCKED_USER =
+                getEnvOrDefault("TEST_LOCKED_USER", "locked_out_user");
+
+        public static final String PROBLEM_USER =
+                getEnvOrDefault("TEST_PROBLEM_USER", "problem_user");
+
+        public static final String INVALID_USER =
+                getEnvOrDefault("TEST_INVALID_USER", "invalid_user");
+
+        public static final String INVALID_PASSWORD =
+                getEnvOrDefault("TEST_INVALID_PASSWORD", "wrong_password");
     }
-    
-    // ============ URL PATHS ============
-    /** URL paths relative to base URL */
+
+    // =========================================================================
+    // URL PATHS (relative to base URL)
+    // =========================================================================
+
     public static final class URLPaths {
-        /** Login page path */
-        public static final String LOGIN_PAGE_PATH = "/";
-        
-        /** Products listing page path */
-        public static final String PRODUCTS_PAGE_PATH = "/inventory.html";
-        
-        /** Shopping cart page path */
-        public static final String CART_PAGE_PATH = "/cart.html";
-        
-        /** Checkout page path */
-        public static final String CHECKOUT_PAGE_PATH = "/checkout-step-one.html";
+
+        private URLPaths() {}
+
+        public static final String LOGIN_PAGE    = "/";
+        public static final String PRODUCTS_PAGE = "/inventory.html";
+        public static final String CART_PAGE     = "/cart.html";
+        public static final String CHECKOUT_PAGE = "/checkout-step-one.html";
     }
-    
-    // ============ COMMON SELECTORS ============
-    /** Common CSS selectors used across multiple page objects */
+
+    // =========================================================================
+    // CSS SELECTORS (shared across page objects and step definitions)
+    // =========================================================================
+
     public static final class Selectors {
-        /** Container for products list */
+
+        private Selectors() {}
+
         public static final String PRODUCTS_CONTAINER = ".inventory_container";
-        
-        /** Shopping cart badge with item count */
-        public static final String CART_BADGE = ".shopping_cart_badge";
-        
-        /** Error message element on login form */
-        public static final String ERROR_MESSAGE = "[data-test='error']";
-        
-        /** Shopping cart link in header */
-        public static final String CART_LINK = ".shopping_cart_link";
-        
-        /** Menu button for hamburger menu */
-        public static final String MENU_BUTTON = "#react-burger-menu-btn";
+        public static final String CART_BADGE         = ".shopping_cart_badge";
+        public static final String CART_LINK          = ".shopping_cart_link";
+        public static final String ERROR_MESSAGE      = "[data-test='error']";
+        public static final String SORT_DROPDOWN      = "[data-test='product_sort_container']";
+        public static final String PRODUCT_TITLE      = ".inventory_item_name";
+        public static final String PRODUCT_PRICE      = ".inventory_item_price";
+        public static final String ADD_TO_CART_BUTTON = "button[data-test*='add-to-cart']";
+        public static final String CART_ITEMS         = ".cart_item";
+        public static final String BURGER_MENU        = "#react-burger-menu-btn";
+        public static final String LOGOUT_LINK        = "#logout_sidebar_link";
     }
-    
-    // ============ WAIT MESSAGES ============
-    /** Custom messages for wait operations */
-    public static final class WaitMessages {
-        /** Products page did not load within timeout */
-        public static final String PRODUCTS_NOT_LOADED = "Products page did not load within timeout";
-        
-        /** Cart was not updated within timeout */
-        public static final String CART_NOT_UPDATED = "Cart was not updated within timeout";
-        
-        /** Element was not visible within timeout */
-        public static final String ELEMENT_NOT_VISIBLE = "Element was not visible within timeout";
-        
-        /** Dropdown menu did not appear */
-        public static final String MENU_NOT_APPEARED = "Dropdown menu did not appear within timeout";
+
+    // =========================================================================
+    // SORT OPTIONS
+    // =========================================================================
+
+    public static final class SortOptions {
+
+        private SortOptions() {}
+
+        public static final String PRICE_LOW_TO_HIGH = "Price (low to high)";
+        public static final String PRICE_HIGH_TO_LOW = "Price (high to low)";
+        public static final String NAME_A_TO_Z       = "Name (A to Z)";
+        public static final String NAME_Z_TO_A       = "Name (Z to A)";
     }
-    
-    // ============ ASSERTION MESSAGES ============
-    /** Standard assertion failure message templates */
+
+    // =========================================================================
+    // ASSERTION MESSAGES
+    // =========================================================================
+
     public static final class AssertionMessages {
-        /** Response status code doesn't match expected */
-        public static final String INVALID_STATUS_CODE = "Response status code does not match expected value";
-        
-        /** Response missing required field */
-        public static final String MISSING_RESPONSE_FIELD = "Response is missing required field";
-        
-        /** Response field value doesn't match expected */
-        public static final String INVALID_FIELD_VALUE = "Response field value does not match expected";
-        
-        /** Cart count is incorrect */
-        public static final String CART_COUNT_MISMATCH = "Cart item count does not match expected";
-        
-        /** User not on expected page */
-        public static final String WRONG_PAGE = "Expected to be on different page";
+
+        private AssertionMessages() {}
+
+        public static final String WRONG_PAGE           = "User is on wrong page";
+        public static final String CART_COUNT_MISMATCH  = "Cart item count mismatch";
+        public static final String ERROR_NOT_DISPLAYED  = "Error message was not displayed";
+        public static final String LOGIN_FAILED         = "Login did not complete successfully";
+        public static final String ITEM_NOT_IN_CART     = "Expected item was not found in cart";
+        public static final String SORT_ORDER_WRONG     = "Product sort order is incorrect";
     }
-    
-    // ============ TEST DATA ============
-    /** Test data values used across scenarios */
-    public static final class TestData {
-        /** Default product name for shopping tests */
-        public static final String PRODUCT_SAUCE_LABS_BACKPACK = "Sauce Labs Backpack";
-        
-        /** Default product price for assertions */
-        public static final String PRODUCT_PRICE = "$29.99";
-        
-        /** Standard sort option */
-        public static final String SORT_PRICE_LOW_TO_HIGH = "Price (low to high)";
-        
-        /** Standard sort option */
-        public static final String SORT_PRICE_HIGH_TO_LOW = "Price (high to low)";
-    }
-    
-    // ============ LOG MESSAGES ============
-    /** Pre-formatted log messages for consistency */
-    public static final class LogMessages {
-        /** Message format: "Navigated to {url}" */
-        public static final String NAVIGATED_TO = "Navigated to %s";
-        
-        /** Message format: "Login performed with username: {username}" */
-        public static final String LOGIN_PERFORMED = "Login performed with username: %s";
-        
-        /** Message format: "Added {count} items to cart" */
-        public static final String ITEMS_ADDED = "Added %d items to cart";
+
+    // =========================================================================
+    // Helpers
+    // =========================================================================
+
+    private static String getEnvOrDefault(String envKey, String defaultValue) {
+        String value = System.getenv(envKey);
+        return (value != null && !value.isBlank()) ? value : defaultValue;
     }
 }

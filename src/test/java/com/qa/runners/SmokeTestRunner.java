@@ -6,7 +6,8 @@ import io.cucumber.junit.Cucumber;
 import io.cucumber.junit.CucumberOptions;
 
 /**
- * SmokeTestRunner - Runs only smoke/critical tests
+ * SmokeTestRunner — runs only scenarios tagged with @smoke.
+ * Triggered on every pull request for fast feedback.
  */
 @RunWith(Cucumber.class)
 @CucumberOptions(
@@ -15,7 +16,8 @@ import io.cucumber.junit.CucumberOptions;
         tags = "@smoke",
         plugin = {
                 "pretty",
-                "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm"
+                "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm",
+                "json:target/cucumber-reports/smoke-cucumber.json"
         },
         monochrome = true
 )

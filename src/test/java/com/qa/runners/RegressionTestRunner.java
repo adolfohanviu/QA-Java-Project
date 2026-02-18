@@ -6,7 +6,8 @@ import io.cucumber.junit.Cucumber;
 import io.cucumber.junit.CucumberOptions;
 
 /**
- * RegressionTestRunner - Runs all regression tests
+ * RegressionTestRunner — runs scenarios tagged with @regression.
+ * Scheduled weekly and on pushes to main/develop.
  */
 @RunWith(Cucumber.class)
 @CucumberOptions(
@@ -15,7 +16,8 @@ import io.cucumber.junit.CucumberOptions;
         tags = "@regression",
         plugin = {
                 "pretty",
-                "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm"
+                "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm",
+                "json:target/cucumber-reports/regression-cucumber.json"
         },
         monochrome = true
 )

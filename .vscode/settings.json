@@ -1,3 +1,18 @@
 {
-    "java.configuration.updateBuildConfiguration": "automatic"
+    "java.configuration.updateBuildConfiguration": "automatic",
+    "maven.terminal.customEnv": [
+        { "environmentVariable": "TEST_ENV", "value": "dev" },
+        { "environmentVariable": "BROWSER_TYPE", "value": "chromium" },
+        { "environmentVariable": "HEADLESS", "value": "false" },
+        { "environmentVariable": "BASE_URL", "value": "https://www.saucedemo.com/" },
+        { "environmentVariable": "API_BASE_URL", "value": "https://jsonplaceholder.typicode.com" },
+        { "environmentVariable": "TEST_STANDARD_USER", "value": "standard_user" },
+        { "environmentVariable": "TEST_STANDARD_PASSWORD", "value": "secret_sauce" },
+        { "environmentVariable": "TEST_LOCKED_USER", "value": "locked_out_user" },
+        { "environmentVariable": "TEST_PROBLEM_USER", "value": "problem_user" },
+        { "environmentVariable": "TEST_INVALID_USER", "value": "invalid_user" },
+        { "environmentVariable": "TEST_INVALID_PASSWORD", "value": "wrong_password" },
+        { "environmentVariable": "LOG_LEVEL", "value": "INFO" }
+    ],
+    "java.checkstyle.configuration": "${workspaceFolder}\\pom.xml"
 }

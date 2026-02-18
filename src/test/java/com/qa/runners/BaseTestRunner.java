@@ -6,8 +6,7 @@ import io.cucumber.junit.Cucumber;
 import io.cucumber.junit.CucumberOptions;
 
 /**
- * BaseTestRunner - Base test runner configuration
- * Can be extended for specific feature runners
+ * BaseTestRunner — runs all feature files across all tags.
  */
 @RunWith(Cucumber.class)
 @CucumberOptions(
@@ -15,10 +14,11 @@ import io.cucumber.junit.CucumberOptions;
         glue = {"com.qa.stepdefs"},
         plugin = {
                 "pretty",
-                "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm"
+                "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm",
+                "json:target/cucumber-reports/cucumber.json",
+                "html:target/cucumber-reports/cucumber.html"
         },
-        monochrome = true,
-        dryRun = false
+        monochrome = true
 )
 public class BaseTestRunner {
 }

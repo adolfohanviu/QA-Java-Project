@@ -1,30 +1,6 @@
 {
-  "userBasic": {
-    "name": "Automation User",
-    "email": "auto@test.com",
-    "id": 1,
-    "status": "active"
-  },
-  "userUpdate": {
-    "name": "Updated User",
-    "email": "updated@test.com",
-    "status": "active"
-  },
-  "userInactive": {
-    "name": "Inactive User",
-    "email": "inactive@test.com",
-    "id": 2,
-    "status": "inactive"
-  },
-  "userAdmin": {
-    "name": "Admin User",
-    "email": "admin@test.com",
-    "role": "admin",
-    "status": "active"
-  },
-  "userWithSpecialChars": {
-    "name": "User-With Special@Chars",
-    "email": "special.chars+test@test.com",
-    "status": "active"
-  }
+  "username": "automation_user",
+  "email": "auto@test.com",
+  "role": "user",
+  "name": "Automation User"
 }

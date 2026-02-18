@@ -17,17 +17,17 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK
-        uses: actions/setup-java@v3
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ matrix.java-version }}
           distribution: 'temurin'
           cache: maven
 
       - name: Install Playwright browsers
-        run: mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install"
+        run: mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps"
 
       - name: Run All Tests
         run: mvn clean verify -Dtest=BaseTestRunner -P headless
@@ -37,6 +37,8 @@ jobs:
           BROWSER_TYPE: chromium
           HEADLESS: true
           API_BASE_URL: https://jsonplaceholder.typicode.com
+          TEST_STANDARD_USER: ${{ secrets.TEST_STANDARD_USER }}
+          TEST_STANDARD_PASSWORD: ${{ secrets.TEST_STANDARD_PASSWORD }}
 
       - name: Generate Allure Report
         if: always()
@@ -47,7 +49,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.java-version }}
+          name: test-results-java-${{ matrix.java-version }}
           path: |
             target/allure-results
             target/logs
@@ -55,17 +57,19 @@ jobs:
 
       - name: Comment PR with Test Results
         if: github.event_name == 'pull_request' && always()
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         with:
           script: |
-            const fs = require('fs');
-            const testSummary = `## Test Results
-            - Java Version: ${{ matrix.java-version }}
-            - Status: ${{ job.status }}
-            - Reports: Check Allure Report in Actions artifacts`;
+            const summary = [
+              '## Test Results',
+              `- **Java Version:** ${{ matrix.java-version }}`,
+              `- **Status:** ${{ job.status }}`,
+              `- **Branch:** ${{ github.head_ref }}`,
+              `- **Reports:** Download Allure Report from the Actions artifacts section`,
+            ].join('\n');
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: testSummary
-            })
+              body: summary
+            });

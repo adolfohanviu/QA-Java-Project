@@ -10,40 +10,47 @@ import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 
 /**
- * BrowserContextManager handles Playwright browser and context lifecycle
- * Provides singleton pattern for browser instance management
- * Manages initialization, creation, and cleanup of browser resources
+ * BrowserContextManager handles Playwright browser and context lifecycle.
+ * Usage: call initBrowser() → createContext() → createPage() before tests,
+ * and closeBrowser() in teardown (which also calls ThreadLocal.remove()).
  */
 public class BrowserContextManager {
+
     private static final Logger logger = LogManager.getLogger(BrowserContextManager.class);
-    private static Playwright playwright;
-    private static Browser browser;
-    private static BrowserContext context;
-    private static Page page;
+
+    private static final ThreadLocal<Playwright> playwrightHolder = new ThreadLocal<>();
+    private static final ThreadLocal<Browser> browserHolder = new ThreadLocal<>();
+    private static final ThreadLocal<BrowserContext> contextHolder = new ThreadLocal<>();
+    private static final ThreadLocal<Page> pageHolder = new ThreadLocal<>();
+
+    private BrowserContextManager() {
+        // Utility class — do not instantiate
+    }
 
     /**
-     * Initialize Playwright browser instance
-     * Creates browser based on configuration (chromium, firefox, webkit)
-     * Sets headless mode based on configuration
-     * 
+     * Initialize Playwright and launch a browser for the current thread.
+     * Browser type and headless mode are read from ConfigManager.
+     *
      * @throws RuntimeException if browser initialization fails
      */
     public static void initBrowser() {
         try {
-            playwright = Playwright.create();
+            Playwright playwright = Playwright.create();
+            playwrightHolder.set(playwright);
+
             String browserType = ConfigManager.getBrowserType();
-            
             BrowserType.LaunchOptions options = new BrowserType.LaunchOptions()
                     .setHeadless(ConfigManager.isHeadless());
 
-            browser = switch (browserType.toLowerCase()) {
+            Browser browser = switch (browserType.toLowerCase()) {
                 case "firefox" -> playwright.firefox().launch(options);
-                case "webkit" -> playwright.webkit().launch(options);
-                default -> playwright.chromium().launch(options);
+                case "webkit"  -> playwright.webkit().launch(options);
+                default        -> playwright.chromium().launch(options);
             };
+            browserHolder.set(browser);
 
-            logger.info(String.format("Browser launched: %s (headless: %s)", 
-                    browserType, ConfigManager.isHeadless()));
+            logger.info("Browser launched: {} (headless: {}, thread: {})",
+                    browserType, ConfigManager.isHeadless(), Thread.currentThread().getId());
         } catch (Exception e) {
             logger.error("Failed to initialize browser", e);
             throw new RuntimeException("Browser initialization failed", e);
@@ -51,112 +58,111 @@ public class BrowserContextManager {
     }
 
     /**
-     * Create a new browser context
-     * Must be called after initBrowser()
-     * Browser context provides isolated environment for pages
-     * 
-     * @throws RuntimeException if browser not initialized
+     * Create a new isolated browser context for the current thread.
+     * Initializes the browser first if not already done.
      */
     public static void createContext() {
-        if (browser == null) {
+        if (browserHolder.get() == null) {
             initBrowser();
         }
-        context = browser.newContext();
-        logger.info("Browser context created");
+        BrowserContext context = browserHolder.get().newContext();
+        contextHolder.set(context);
+        logger.info("Browser context created (thread: {})", Thread.currentThread().getId());
     }
 
     /**
-     * Create a new page in the current context
-     * Must be called after createContext()
-     * Page is the interface for interacting with browser
-     * 
-     * @throws RuntimeException if context not initialized
+     * Create a new page within the current thread's browser context.
+     * Creates a context first if not already done.
      */
     public static void createPage() {
-        if (context == null) {
+        if (contextHolder.get() == null) {
             createContext();
         }
-        page = context.newPage();
-        logger.info("New page created");
+        Page page = contextHolder.get().newPage();
+        pageHolder.set(page);
+        logger.info("New page created (thread: {})", Thread.currentThread().getId());
     }
 
     /**
-     * Get the current page instance
-     * Creates page automatically if not already initialized
-     * 
-     * @return Current Playwright Page object
-     * @throws RuntimeException if page creation fails
+     * Retrieve the current thread's Page instance.
+     * Creates the full browser/context/page chain if not yet initialized.
+     *
+     * @return Current thread-local Playwright Page
      */
     public static Page getPage() {
-        if (page == null) {
+        if (pageHolder.get() == null) {
             createPage();
         }
-        return page;
+        return pageHolder.get();
     }
 
     /**
-     * Navigate to a URL
-     * 
+     * Navigate to a URL on the current thread's page.
+     *
      * @param url Full URL to navigate to
      */
     public static void navigateTo(String url) {
         getPage().navigate(url);
-        logger.info(String.format("Navigated to: %s", url));
+        logger.info("Navigated to: {}", url);
     }
 
     /**
-     * Close the current page
-     * Releases page resources
+     * Close and nullify the current thread's page.
      */
     public static void closePage() {
+        Page page = pageHolder.get();
         if (page != null) {
             page.close();
-            page = null;
-            logger.info("Page closed");
+            pageHolder.remove();
+            logger.info("Page closed (thread: {})", Thread.currentThread().getId());
         }
     }
 
     /**
-     * Close the current browser context
-     * Releases context resources
+     * Close and nullify the current thread's browser context.
      */
     public static void closeContext() {
+        BrowserContext context = contextHolder.get();
         if (context != null) {
             context.close();
-            context = null;
-            logger.info("Context closed");
+            contextHolder.remove();
+            logger.info("Context closed (thread: {})", Thread.currentThread().getId());
         }
     }
 
     /**
-     * Close the browser and all instances
-     * Cleans up all Playwright resources
-     * Call this in test teardown
+     * Close all browser resources for the current thread and clean up ThreadLocals.
+     * Must be called in test teardown to prevent memory leaks.
      */
     public static void closeBrowser() {
         closePage();
         closeContext();
+
+        Browser browser = browserHolder.get();
         if (browser != null) {
             browser.close();
-            browser = null;
+            browserHolder.remove();
         }
+
+        Playwright playwright = playwrightHolder.get();
         if (playwright != null) {
             playwright.close();
-            playwright = null;
+            playwrightHolder.remove();
         }
-        logger.info("Browser closed");
+
+        logger.info("Browser fully closed and ThreadLocals cleaned (thread: {})",
+                Thread.currentThread().getId());
     }
 
     /**
-     * Reset browser state
-     * Closes current page and context, creates new ones
-     * Useful for test isolation between scenarios
+     * Reset browser state: close page+context and create fresh ones.
+     * Useful for mid-suite isolation without relaunching the browser.
      */
     public static void resetBrowser() {
         closePage();
         closeContext();
         createContext();
         createPage();
-        logger.info("Browser reset");
+        logger.info("Browser reset (thread: {})", Thread.currentThread().getId());
     }
 }
