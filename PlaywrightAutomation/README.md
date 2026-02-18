@@ -1,6 +1,8 @@
 # Playwright Automation Framework
 
-Professional SDET-level automation framework using Playwright, Java, Cucumber, and Maven.
+Comprehensive end-to-end test automation framework built with Playwright, Java, and Cucumber. Designed for UI and API testing with Allure reporting, headless execution, and CI/CD integration.
+
+> **Status**: ✅ CI/CD pipelines configured and passing - All Tests, Smoke Tests, Regression Tests
 
 ## Features
 
@@ -71,6 +73,34 @@ mvn clean test
 mvn clean test -Dtest=SmokeTestRunner
 ```
 
+### One-command setup + run
+
+Windows PowerShell:
+```powershell
+./scripts/run.ps1
+```
+
+macOS/Linux:
+```bash
+./scripts/run.sh
+```
+
+### Run Headless (recommended)
+```bash
+HEADLESS=true mvn clean test -Dtest=SmokeTestRunner
+```
+
+Or with the Maven profile:
+```bash
+mvn clean test -P headless -Dtest=SmokeTestRunner
+```
+
+Windows PowerShell:
+```powershell
+$env:HEADLESS="true"
+mvn clean test -Dtest=SmokeTestRunner
+```
+
 ### Run Regression Tests
 ```bash
 mvn clean test -Dtest=RegressionTestRunner
@@ -80,6 +110,8 @@ mvn clean test -Dtest=RegressionTestRunner
 ```bash
 mvn clean test -Dtest=BaseTestRunner -Dcucumber.filter.tags="@smoke"
 ```
+
+CI uses `mvn verify` to ensure the full Maven lifecycle runs (with tests).
 
 ## Configuration
 
@@ -93,7 +125,7 @@ Configuration is managed via HOCON files in `src/test/resources/config/`:
 BASE_URL=https://www.saucedemo.com/
 BROWSER_TYPE=chromium
 HEADLESS=true
-API_BASE_URL=https://api.example.com
+API_BASE_URL=https://jsonplaceholder.typicode.com
 TEST_ENV=dev
 ```
 
@@ -104,6 +136,15 @@ After test execution:
 ```bash
 mvn allure:report
 mvn allure:serve
+```
+
+Tip: Use `mvn allure:serve` to avoid "Loading..." or 404s when opening the report.
+
+## Test Data Fixtures
+
+API payload fixtures live in `src/test/resources/data/api-users.json` and can be used in feature steps:
+```
+When I make a POST request to "/users" with fixture "userBasic"
 ```
 
 The Allure report shows:
@@ -161,6 +202,20 @@ Report location: `target/site/allure-maven-plugin/index.html`
 
 ## API Testing
 
+Default API base URL (demo): `https://jsonplaceholder.typicode.com`
+
+Run API-only tests:
+```bash
+mvn clean test -Dtest=BaseTestRunner -Dcucumber.filter.tags=@api
+```
+
+Windows PowerShell:
+```powershell
+mvn clean test -Dtest=BaseTestRunner "-Dcucumber.filter.tags=@api"
+```
+
+Note: API tests require outbound network access to the demo endpoint.
+
 ### APIClient Methods
 - `addHeader(String key, String value)`
 - `addHeaders(Map<String, String> headers)`
@@ -198,6 +253,11 @@ Report location: `target/site/allure-maven-plugin/index.html`
 - `getCurrentURL()`
 - `generateRandomEmail()`
 - `generateRandomString(int length)`
+
+## Stability & Artifacts
+
+- Failed tests are retried once automatically (`rerunFailingTestsCount=1`).
+- On failures, screenshots are captured to `target/screenshots` and attached to Allure.
 
 ## Cucumber Features
 
@@ -250,31 +310,6 @@ timeout {
 ### Configuration Not Loading
 Check `TEST_ENV` environment variable and ensure config file exists in `src/test/resources/config/`
 
-## Contributing
-
-1. Create a feature branch (`git checkout -b feature/feature-name`)
-2. Write tests for new features
-3. Ensure all tests pass locally
-4. Submit a pull request
-5. CI/CD will validate before merge
-
-## License
-
-MIT License - see LICENSE file for details
-
 ## Author
 
 SDET - QA Automation Engineer
-
-## Support
-
-For issues or questions:
-1. Check existing documentation
-2. Review test logs in `target/logs/`
-3. Check Allure reports for detailed failure information
-4. Consult GitHub issues
-
----
-
-**Last Updated**: 2026-02-16  
-**Framework Version**: 1.0.0

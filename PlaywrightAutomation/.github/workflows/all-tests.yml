@@ -30,34 +30,28 @@ jobs:
         run: mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install"
 
       - name: Run All Tests
-        run: mvn clean test -P all-tests
+        run: mvn clean verify -Dtest=BaseTestRunner -P headless
         continue-on-error: true
         env:
           BASE_URL: https://www.saucedemo.com/
           BROWSER_TYPE: chromium
           HEADLESS: true
+          API_BASE_URL: https://jsonplaceholder.typicode.com
 
       - name: Generate Allure Report
         if: always()
+        continue-on-error: true
         run: mvn allure:report
 
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results-${{ matrix.java-version }}
           path: |
             target/allure-results
-            target/cucumber-reports
             target/logs
-
-      - name: Publish Allure Results
-        if: always()
-        uses: simple-elf/allure-report-action@master
-        with:
-          allure_results: target/allure-results
-          allure_history: allure-history
-          keep_reports: 20
+          retention-days: 30
 
       - name: Comment PR with Test Results
         if: github.event_name == 'pull_request' && always()

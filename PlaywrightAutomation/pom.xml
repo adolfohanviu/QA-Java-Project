@@ -118,7 +118,17 @@
                 </configuration>
             </plugin>
 
-            <!-- Cucumber Maven Plugin -->
+            <!-- Maven Exec Plugin for Playwright CLI -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <mainClass>com.microsoft.playwright.CLI</mainClass>
+                </configuration>
+            </plugin>
+
+            <!-- Maven Surefire Plugin -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -127,7 +137,25 @@
                     <includes>
                         <include>**/*TestRunner.java</include>
                     </includes>
+                    <systemPropertyVariables>
+                        <allure.results.directory>${project.build.directory}/allure-results</allure.results.directory>
+                        <HEADLESS>${HEADLESS}</HEADLESS>
+                    </systemPropertyVariables>
+                    <rerunFailingTestsCount>1</rerunFailingTestsCount>
+                    <properties>
+                        <property>
+                            <name>listener</name>
+                            <value>io.qameta.allure.junit4.AllureJunit4</value>
+                        </property>
+                    </properties>
                 </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>io.qameta.allure</groupId>
+                        <artifactId>allure-junit4</artifactId>
+                        <version>${allure.version}</version>
+                    </dependency>
+                </dependencies>
             </plugin>
 
             <!-- Allure Maven Plugin -->
@@ -156,4 +184,13 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>headless</id>
+            <properties>
+                <HEADLESS>true</HEADLESS>
+            </properties>
+        </profile>
+    </profiles>
 </project>

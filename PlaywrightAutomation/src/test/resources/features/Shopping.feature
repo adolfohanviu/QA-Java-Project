@@ -1,6 +1,7 @@
 Feature: Product Shopping and Cart Management
 
   Background:
+    # Using TestConstants.TestUsers.STANDARD_USER and STANDARD_PASSWORD
     Given User navigates to the login page
     When User logs in with credentials "standard_user" and "secret_sauce"
     Then User should see the products page
@@ -19,6 +20,7 @@ Feature: Product Shopping and Cart Management
 
   @regression
   Scenario: Sort products by price
+    # Using TestConstants.TestData.SORT_PRICE_LOW_TO_HIGH
     When User sorts products by "Price (low to high)"
     Then User is on the products page
 
