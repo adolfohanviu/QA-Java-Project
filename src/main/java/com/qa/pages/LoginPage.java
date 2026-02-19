@@ -1,5 +1,7 @@
 package com.qa.pages;
 
+import com.qa.utils.TestConstants;
+
 import io.qameta.allure.Step;
 
 /**
@@ -7,10 +9,10 @@ import io.qameta.allure.Step;
  */
 public class LoginPage extends BasePage {
 
-    private static final String USERNAME_INPUT = "[data-test='username']";
-    private static final String PASSWORD_INPUT = "[data-test='password']";
-    private static final String LOGIN_BUTTON   = "[data-test='login-button']";
-    private static final String ERROR_MESSAGE  = "[data-test='error']";
+    private static final String USERNAME_INPUT = TestConstants.Selectors.USERNAME_INPUT;
+    private static final String PASSWORD_INPUT = TestConstants.Selectors.PASSWORD_INPUT;
+    private static final String LOGIN_BUTTON   = TestConstants.Selectors.LOGIN_BUTTON;
+    private static final String ERROR_MESSAGE  = TestConstants.Selectors.ERROR_MESSAGE;
 
     @Step("Enter username: {username}")
     public void enterUsername(String username) {

@@ -110,7 +110,7 @@ public class LoginStepDefinitions {
     @Then("User should see the login page")
     @Step("Verify login page is displayed")
     public void user_should_see_the_login_page() {
-        loginPage.waitForElement("[data-test='login-button']");
+        loginPage.waitForElement(TestConstants.Selectors.LOGIN_BUTTON);
         String currentUrl = loginPage.getCurrentURL();
         Assert.assertTrue(
                 "Expected login page URL, got: " + currentUrl,

@@ -176,6 +176,16 @@ mvn clean test -Dtest=RegressionTestRunner
 mvn clean test -Dtest=BaseTestRunner
 ```
 
+### Run UI tests only
+```bash
+mvn clean test -Dtest=UITestRunner -Dbrowser.headless=true
+```
+
+### Run API tests only
+```bash
+mvn clean test -Dtest=APITestRunner -Dbrowser.headless=true
+```
+
 ### Run by tag
 ```bash
 # Any OS
@@ -190,6 +200,12 @@ mvn clean test -Dtest=BaseTestRunner "-Dcucumber.filter.tags=@smoke"
 ```bash
 mvn clean test -Dtest=BaseTestRunner -Dcucumber.filter.tags="@api"
 ```
+
+## Test Strategy
+
+- `UITestRunner` executes all non-API scenarios (`not @api`) for browser-based validation.
+- `APITestRunner` executes only API scenarios (`@api`) for service-level validation.
+- `all-tests` workflow runs UI and API suites as separate parallel jobs for clearer reporting and faster feedback.
 
 ---
 

@@ -86,6 +86,9 @@ public final class TestConstants {
 
         private Selectors() {}
 
+        public static final String USERNAME_INPUT     = "[data-test='username']";
+        public static final String PASSWORD_INPUT     = "[data-test='password']";
+        public static final String LOGIN_BUTTON       = "[data-test='login-button']";
         public static final String PRODUCTS_CONTAINER = ".inventory_container, [data-test='inventory-container']";
         public static final String CART_BADGE         = ".shopping_cart_badge";
         public static final String CART_LINK          = ".shopping_cart_link";
@@ -95,6 +98,10 @@ public final class TestConstants {
         public static final String PRODUCT_PRICE      = ".inventory_item_price";
         public static final String ADD_TO_CART_BUTTON = "button[data-test*='add-to-cart']";
         public static final String CART_ITEMS         = ".cart_item";
+        public static final String CART_ITEM_NAMES    = ".inventory_item_name";
+        public static final String ITEM_PRICE         = ".inventory_item_price";
+        public static final String CHECKOUT_BUTTON    = "[data-test='checkout']";
+        public static final String CONTINUE_SHOPPING_BUTTON = "[data-test='continue-shopping']";
         public static final String BURGER_MENU        = "#react-burger-menu-btn";
         public static final String LOGOUT_LINK        = "#logout_sidebar_link";
     }

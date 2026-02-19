@@ -9,7 +9,7 @@ on:
     - cron: '0 2 * * *'  # Daily at 2 AM UTC
 
 jobs:
-  test:
+  ui-test:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -29,8 +29,8 @@ jobs:
       - name: Install Playwright browsers
         run: mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps"
 
-      - name: Run All Tests
-        run: mvn clean verify -Dtest=BaseTestRunner -Dbrowser.headless=true
+      - name: Run UI Tests
+        run: mvn clean verify -Dtest=UITestRunner -Dbrowser.headless=true
         env:
           BASE_URL: https://www.saucedemo.com/
           BROWSER_TYPE: chromium
@@ -48,7 +48,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-java-${{ matrix.java-version }}
+          name: ui-test-results-java-${{ matrix.java-version }}
           path: |
             target/allure-results
             target/logs
@@ -62,7 +62,7 @@ jobs:
             const summary = [
               '## Test Results',
               `- **Java Version:** ${{ matrix.java-version }}`,
-              `- **Status:** ${{ job.status }}`,
+              `- **UI Status:** ${{ job.status }}`,
               `- **Branch:** ${{ github.head_ref }}`,
               `- **Reports:** Download Allure Report from the Actions artifacts section`,
             ].join('\n');
@@ -72,3 +72,48 @@ jobs:
               repo: context.repo.repo,
               body: summary
             });
+
+  api-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java-version: [ '21' ]
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Install Playwright browsers
+        run: mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps"
+
+      - name: Run API Tests
+        run: mvn clean verify -Dtest=APITestRunner -Dbrowser.headless=true
+        env:
+          BASE_URL: https://www.saucedemo.com/
+          BROWSER_TYPE: chromium
+          HEADLESS: true
+          API_BASE_URL: https://jsonplaceholder.typicode.com
+          TEST_STANDARD_USER: ${{ secrets.TEST_STANDARD_USER }}
+          TEST_STANDARD_PASSWORD: ${{ secrets.TEST_STANDARD_PASSWORD }}
+
+      - name: Generate Allure Report
+        if: always()
+        continue-on-error: true
+        run: mvn allure:report
+
+      - name: Upload API Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-test-results-java-${{ matrix.java-version }}
+          path: |
+            target/allure-results
+            target/logs
+          retention-days: 30
