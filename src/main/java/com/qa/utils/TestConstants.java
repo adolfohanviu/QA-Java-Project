@@ -86,11 +86,11 @@ public final class TestConstants {
 
         private Selectors() {}
 
-        public static final String PRODUCTS_CONTAINER = ".inventory_container";
+        public static final String PRODUCTS_CONTAINER = ".inventory_container, [data-test='inventory-container']";
         public static final String CART_BADGE         = ".shopping_cart_badge";
         public static final String CART_LINK          = ".shopping_cart_link";
         public static final String ERROR_MESSAGE      = "[data-test='error']";
-        public static final String SORT_DROPDOWN      = "[data-test='product_sort_container']";
+        public static final String SORT_DROPDOWN      = "[data-test='product_sort_container'], .product_sort_container";
         public static final String PRODUCT_TITLE      = ".inventory_item_name";
         public static final String PRODUCT_PRICE      = ".inventory_item_price";
         public static final String ADD_TO_CART_BUTTON = "button[data-test*='add-to-cart']";

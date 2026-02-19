@@ -110,11 +110,11 @@ public class LoginStepDefinitions {
     @Then("User should see the login page")
     @Step("Verify login page is displayed")
     public void user_should_see_the_login_page() {
-        loginPage.waitForURL("/");
+        loginPage.waitForElement("[data-test='login-button']");
         String currentUrl = loginPage.getCurrentURL();
         Assert.assertTrue(
                 "Expected login page URL, got: " + currentUrl,
-                currentUrl.endsWith("/") || currentUrl.contains("saucedemo.com/"));
+            currentUrl.equals(ConfigManager.getBaseURL()) || currentUrl.startsWith(ConfigManager.getBaseURL()));
         logger.info("Verified user is on login page");
     }
 

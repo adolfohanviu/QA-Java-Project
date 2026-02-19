@@ -1,5 +1,7 @@
 package com.qa.pages;
 
+import java.util.regex.Pattern;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -122,7 +124,7 @@ public abstract class BasePage {
     @Step("Wait for element: {selector}")
     public void waitForElement(String selector) {
         try {
-            page.locator(selector).waitFor(
+            page.locator(selector).first().waitFor(
                     new Locator.WaitForOptions()
                             .setTimeout(ConfigManager.getWaitTimeout()));
             logger.info("Element visible: {}", selector);
@@ -135,7 +137,8 @@ public abstract class BasePage {
     @Step("Wait for URL to contain: {urlFragment}")
     public void waitForURL(String urlFragment) {
         try {
-            page.waitForURL("**" + urlFragment + "**",
+            Pattern urlPattern = Pattern.compile(".*" + Pattern.quote(urlFragment) + ".*");
+            page.waitForURL(urlPattern,
                     new Page.WaitForURLOptions()
                             .setTimeout(ConfigManager.getTimeout()));
             logger.info("URL now contains: {}", urlFragment);

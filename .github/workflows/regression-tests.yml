@@ -24,8 +24,7 @@ jobs:
         run: mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps"
 
       - name: Run Regression Tests
-        run: mvn clean verify -Dtest=RegressionTestRunner -P headless
-        continue-on-error: true
+        run: mvn clean verify -Dtest=RegressionTestRunner -Dbrowser.headless=true
         env:
           BASE_URL: https://www.saucedemo.com/
           BROWSER_TYPE: chromium

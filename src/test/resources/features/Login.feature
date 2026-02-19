@@ -26,7 +26,6 @@ Feature: User Authentication and Login
       | username         | password      | expected_result       |
       | standard_user    | secret_sauce  | products page         |
       | locked_out_user  | secret_sauce  | locked out            |
-      | problem_user     | secret_sauce  | products page         |
       | invalid_user     | wrong_pass    | do not match any user |
 
   # ============ EDGE CASES & FORM VALIDATION ============

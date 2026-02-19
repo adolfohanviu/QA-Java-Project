@@ -23,8 +23,7 @@ jobs:
         run: mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="install --with-deps"
 
       - name: Run Smoke Tests
-        run: mvn clean test -Dtest=SmokeTestRunner -P headless
-        continue-on-error: true
+        run: mvn clean test -Dtest=SmokeTestRunner -Dbrowser.headless=true
         env:
           BASE_URL: https://www.saucedemo.com/
           BROWSER_TYPE: chromium

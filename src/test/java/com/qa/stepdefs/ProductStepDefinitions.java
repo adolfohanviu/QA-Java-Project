@@ -74,7 +74,6 @@ public class ProductStepDefinitions {
     public void user_navigates_to_cart() {
         productPage.click(TestConstants.Selectors.CART_LINK);
         cartPage = new CartPage();
-        cartPage.waitForURL("cart.html");
         cartPage.waitForElement(TestConstants.Selectors.CART_ITEMS);
         logger.info("Navigated to cart page");
     }

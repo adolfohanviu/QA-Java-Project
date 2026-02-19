@@ -1,5 +1,6 @@
 package com.qa.utils;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -44,7 +45,7 @@ public final class CommonUtils {
             page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get(screenshotPath)));
             logger.info("Screenshot captured: {}", screenshotPath);
             return Optional.of(screenshotPath);
-        } catch (Exception e) {
+        } catch (IOException | NullPointerException e) {
             logger.error("Failed to capture screenshot '{}'", fileName, e);
             return Optional.empty();
         }

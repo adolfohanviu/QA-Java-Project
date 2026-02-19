@@ -144,7 +144,12 @@ mvn clean test -Dtest=SmokeTestRunner
 HEADLESS=true mvn clean test -Dtest=SmokeTestRunner
 ```
 
-**Via Maven system property (any OS):**
+**Via Maven system property (any OS, most reliable):**
+```bash
+mvn clean test -Dtest=SmokeTestRunner -Dbrowser.headless=true
+```
+
+**Alternative system property:**
 ```bash
 mvn clean test -Dtest=SmokeTestRunner -DHEADLESS=true
 ```
