@@ -35,3 +35,5 @@ target/screenshots/
 secrets.properties
 credentials.properties
 .vscode/settings.json
+# Local Allure output at repo root
+allure-results/
