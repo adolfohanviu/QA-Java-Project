@@ -24,7 +24,7 @@
         <allure.version>2.35.4</allure.version>
         <rest-assured.version>6.0.1</rest-assured.version>
         <jackson.version>2.22.2</jackson.version>
-        <typesafe-config.version>1.4.3</typesafe-config.version>
+        <typesafe-config.version>1.4.9</typesafe-config.version>
         <allure.maven.version>2.13.0</allure.maven.version>
     </properties>
 
