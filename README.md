@@ -260,6 +260,16 @@ This project demonstrates practical SDET ownership across:
 
 ---
 
+## AI-assisted development
+
+This repo carries an AI-agent instruction layer: `AGENTS.md` (canonical,
+tool-agnostic rules grounded in this codebase's real history — thread-safety
+fixes, config precedence, vendored-file cleanup), project skills under
+`.claude/skills/`, and reusable prompt templates under `prompts/`. Any AI
+agent working in this repository should read `AGENTS.md` first.
+
+---
+
 ## License
 
 MIT
