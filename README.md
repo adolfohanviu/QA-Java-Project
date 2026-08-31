@@ -137,8 +137,11 @@ mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args="in
 
 ### 4) Configure environment
 
-Use environment variables or `.vscode/settings.json` local settings.
-Never commit credentials.
+`ConfigManager` reads real environment variables (checked before the HOCON defaults in
+`application.conf`) — see `.env.example` for the full list of variables it recognizes, then export
+them in your shell (or set them as CI secrets). There is no `.env`/`.vscode/settings.json` loader
+in this codebase; those files are documentation of the variable names, not something the framework
+reads automatically. Never commit credentials.
 
 ---
 

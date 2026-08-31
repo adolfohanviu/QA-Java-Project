@@ -1,6 +1,11 @@
 # Build output
 target/
 *.class
+dependency-reduced-pom.xml
+
+# Allure commandline distribution (vendored binary, ~68 files) — install it
+# locally via the allure CLI instead of committing the jars.
+.allure/
 
 # Maven
 .mvn/
