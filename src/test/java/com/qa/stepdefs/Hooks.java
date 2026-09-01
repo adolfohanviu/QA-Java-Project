@@ -24,11 +24,14 @@ public class Hooks {
     private static final Logger logger = LogManager.getLogger(Hooks.class);
 
     /**
-     * Runs before every scenario: initialise a fresh browser, context, and page.
+     * Runs before every UI scenario: initialise a fresh browser, context, and
+     * page. Scoped to exclude @api scenarios - they never touch a page, and
+     * launching a browser for them was pure waste (verified: every API-only
+     * scenario was starting and tearing down a full Chromium for nothing).
      * The ThreadLocal design in BrowserContextManager makes this safe for
      * parallel execution.
      */
-    @Before(order = 0)
+    @Before(value = "not @api", order = 0)
     public void setUp() {
         logger.info("===== Setting up test environment (thread: {}) =====",
                 Thread.currentThread().threadId());
@@ -39,10 +42,11 @@ public class Hooks {
     }
 
     /**
-     * Runs after every scenario: captures a screenshot on failure, attaches
-     * the current URL, then tears down all browser resources.
+     * Runs after every UI scenario (mirrors setUp's @api exclusion): captures
+     * a screenshot on failure, attaches the current URL, then tears down all
+     * browser resources.
      */
-    @After(order = 0)
+    @After(value = "not @api", order = 0)
     public void tearDown(Scenario scenario) {
         logger.info("===== Tearing down test environment (thread: {}) =====",
                 Thread.currentThread().threadId());
